@@ -1,3 +1,4 @@
 ### GET request to get all patients
+## GET http://localhost:4000/patients/c590a750-e91d-4aae-80ac-65118ed2e291
 GET http://localhost:4000/patients
 ###

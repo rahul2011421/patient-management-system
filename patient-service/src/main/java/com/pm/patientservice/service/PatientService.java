@@ -21,6 +21,11 @@ public class PatientService {
         this.patientRepository = patientRepository;
     }
 
+    public PatientResponseDTO getPatientById(UUID id){
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException("Patient not found with ID: " + id));
+        return PatientMapper.toDto(patient);
+    }
+
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
         return patients.stream().map(PatientMapper::toDto).toList();

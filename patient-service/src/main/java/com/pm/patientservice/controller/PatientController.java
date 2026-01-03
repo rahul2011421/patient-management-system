@@ -24,6 +24,12 @@ public class PatientController {
         this.patientService = patientService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable UUID id){
+        PatientResponseDTO patient = patientService.getPatientById(id);
+        return ResponseEntity.ok().body(patient);
+    }
+
     @GetMapping
     @Operation(summary = "Get Patients") //to provide message to the end points on swagger
     public ResponseEntity<List<PatientResponseDTO>> getPatients() {
@@ -34,7 +40,7 @@ public class PatientController {
     @PostMapping
     public ResponseEntity<PatientResponseDTO> createPatient(@Validated({Default.class, CreatePatientValidationGroup.class}) @RequestBody PatientRequestDTO patientRequestDTO) {
         PatientResponseDTO patientResponseDTO = patientService.createPatient(patientRequestDTO);
-        return ResponseEntity.ok().body(patientResponseDTO);
+        return ResponseEntity.status(201).body(patientResponseDTO);
     }
 
     // localhost:4000/patients/123123123-123123123
