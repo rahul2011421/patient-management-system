@@ -19,6 +19,7 @@ public class KafkaProducer {
     }
 
     public void sendEvent(Patient patient) {
+
         PatientEvent event = PatientEvent.newBuilder()
                 .setPatientId(patient.getId().toString())
                 .setName(patient.getName())
@@ -28,8 +29,9 @@ public class KafkaProducer {
 
         try {
             kafkaTemplate.send("patient", event.toByteArray());
+            log.info("Patient event sent successfully: {}", patient.getId());
         } catch (Exception e) {
-            log.error("Error sending PatientCreated event: {}", event);
+            log.error("Failed to send patient event: {}", patient.getId(), e);
         }
     }
 }
