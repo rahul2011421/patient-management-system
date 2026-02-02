@@ -3,8 +3,10 @@
 
 ##direct call to patient-service but for that we need to open the port 4000 on docker run config
 ##GET http://localhost:4000/patients
+## In local call through api-gateway
+## GET http://localhost:4004/api/patients
 
 
-GET http://localhost:4004/api/patients
+GET http://lb-23edb842.elb.localhost.localstack.cloud:4004/api/patients
 Authorization: Bearer {{token}}
 ###
