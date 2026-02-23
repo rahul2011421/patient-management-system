@@ -7,6 +7,8 @@
 ## GET http://localhost:4004/api/patients
 
 
-GET http://lb-23edb842.elb.localhost.localstack.cloud:4004/api/patients
+## GET http://lb-23edb842.elb.localhost.localstack.cloud:4004/api/patients
+
+GET http://localhost:4004/api/patients?sort=desc&size=2&searchValue=rahul
 Authorization: Bearer {{token}}
 ###

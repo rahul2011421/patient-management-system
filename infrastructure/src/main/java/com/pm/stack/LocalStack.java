@@ -260,7 +260,7 @@ public class LocalStack extends Stack {
 
     /**
      * Generic factory method for creating Fargate services.
-     *
+
      * Handles:
      *  - Task definition
      *  - Logging
