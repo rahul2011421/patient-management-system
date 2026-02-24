@@ -10,6 +10,9 @@ import com.pm.patientservice.kafka.KafkaProducer;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +25,7 @@ import java.util.UUID;
 
 @Service
 public class PatientService {
+    private static final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
     private final KafkaProducer kafkaProducer;
@@ -37,7 +41,20 @@ public class PatientService {
         return PatientMapper.toDto(patient);
     }
 
+    @Cacheable(
+            value = "patients",
+            key = "#page + '-' + #size + '-' + #sort + '-' + #ssortField",
+            condition = "#searchValue == ''"
+    )
     public PagedPatientResponseDTO getPatients(int page, int size, String sort, String sortField, String searchValue) {
+
+        log.info("[REDIS]: Cache miss - fetching form DB");
+
+        try{
+            Thread.sleep(2000);
+        }catch(InterruptedException e){
+            log.error(e.getMessage());
+        }
 
         // request -> page = 1
         // pageable object -> page = 0
