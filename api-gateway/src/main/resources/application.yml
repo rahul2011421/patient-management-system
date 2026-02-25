@@ -2,10 +2,20 @@ server:
   port: 4004
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
   cloud:
     gateway:
-      routes:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.burstCapacity: 5
+            redis-rate-limiter.replenishRate: 5
+            key-resolver: "#{@ipKeyResolver}"
 
+      routes:
         ## http://localhost:4004/auth/login
         ## API GATEWAY --> http://auth-service:4005/login
         - id: auth-service-route
