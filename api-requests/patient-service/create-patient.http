@@ -1,14 +1,15 @@
 ### POST request to create new patient entity
-POST http://lb-23edb842.elb.localhost.localstack.cloud:4004/api/patients
+// POST http://lb-23edb842.elb.localhost.localstack.cloud:4004/api/patients
+POST http://localhost:4004/api/patients
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "name": "localstack",
-  "email": "localstack@example.com",
-  "address": "Brookfield",
-  "dateOfBirth": "1999-02-02",
-  "registeredDate": "2026-02-02"
+  "name": "chotu",
+  "email": "chotu@example.com",
+  "address": "sitamarhi",
+  "dateOfBirth": "2005-07-07",
+  "registeredDate": "2026-02-26"
 }
 
 ###

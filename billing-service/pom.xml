@@ -74,7 +74,11 @@
             <version>4.29.1</version>
         </dependency>
 
-
+        <!-- KAFKA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
     </dependencies>
 
 
