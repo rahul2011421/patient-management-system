@@ -48,7 +48,7 @@ public class PatientService {
     )
     public PagedPatientResponseDTO getPatients(int page, int size, String sort, String sortField, String searchValue) {
 
-        log.info("[REDIS]: Cache miss - fetching form DB");
+        // ...logic to capture metric.... In place of adding the logic here we will use AOP to handle this essentially behind the scene of this method call
 
         try{
             Thread.sleep(2000);
