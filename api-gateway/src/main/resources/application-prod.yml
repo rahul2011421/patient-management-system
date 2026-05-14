@@ -2,6 +2,10 @@ server:
   port: 4004 # Gateway listens on port 4004
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
   cloud:
     gateway:
       routes:
@@ -9,7 +13,8 @@ spring:
         ## http://localhost:4004/auth/login
         ## API GATEWAY --> http://auth-service:4005/login
         - id: auth-service-route
-          uri: http://host.docker.internal:4005
+          uri: http://auth-service.patient-management.local:4005
+        ##  uri: http://host.docker.internal:4005 --- In place of this above one we are using --and this one currently its using DOCKER DNS resolution its fine for development as local stack is simulating aws ecs services using docker container, but what we want is learn how to make it more robust for when we are deploying to real aws production environment
           predicates:
             - Path=/auth/**
           filters:
@@ -19,7 +24,8 @@ spring:
         ## API GATEWAY --> http://patient-service:4000/patients
         ## PATIENT SERVICE (SPRING BOOT APP) --> /patients --> Patients Array
         - id: patient-service-route
-          uri: http://host.docker.internal:4000
+          uri: http://patient-service.patient-management.local:4000
+          ##uri: http://host.docker.internal:4000
           predicates:
             - Path=/api/patients/**
           filters:
@@ -29,14 +35,15 @@ spring:
         ## REST-CLIENT --> http://localhost:4004/api-docs/patients
         ## API GATEWAY --> http://patient-service:4000/v3/api-docs
         - id: api-docs-patient-route
-          uri: http://host.docker.internal:4000
+          uri: http://patient-service.patient-management.local:4000
+          ##uri: http://host.docker.internal:4000
           predicates:
             - Path=/api-docs/patients/**
           filters:
             - RewritePath=/api-docs/patients,/v3/api-docs
 
         - id: api-docs-auth-route
-          uri: http://host.docker.internal:4005
+          uri: http://auth-service.patient-management.local:4005
           predicates:
             - Path=/api-docs/auth
           filters:

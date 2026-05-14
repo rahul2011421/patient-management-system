@@ -28,7 +28,7 @@ import software.amazon.awscdk.services.rds.DatabaseInstanceEngine;
 import software.amazon.awscdk.services.rds.PostgresEngineVersion;
 import software.amazon.awscdk.services.rds.PostgresInstanceEngineProps;
 import software.amazon.awscdk.services.route53.CfnHealthCheck;
-
+import software.amazon.awscdk.services.servicediscovery.DnsRecordType;
 
 
 /**
@@ -150,7 +150,8 @@ public class LocalStack extends Stack {
                         List.of(4000),
                         patientServiceDb,
                         Map.of(
-                                "BILLING_SERVICE_ADDRESS", "host.docker.internal",
+                               // "BILLING_SERVICE_ADDRESS", "host.docker.internal",  ---this is okay for development and both docker and localstack because both of them system are using docker networking but whenever we deploy our stack to the real aws on production it will break because ecs does not use docker DNS networking instead it uses it own things, and its better to use the ecs cloud map service discovery functionality
+                                    "BILLING_SERVICE_ADDRESS", "billing-service.patient-management.local",
                                 "BILLING_SERVICE_GRPC_PORT", "9001"
                         )
                 );
@@ -332,6 +333,10 @@ public class LocalStack extends Stack {
                 .cluster(ecsCluster)
                 .taskDefinition(taskDefinition)
                 .assignPublicIp(false)
+                .cloudMapOptions(CloudMapOptions.builder()
+                        .name(imageName) //patient-service.patient-management.local //-> patient-service--- this is the name of the service //-> patient-management.local---- this is the name of the namespace
+                        .dnsRecordType(DnsRecordType.A)
+                        .build())
                 .serviceName(imageName)
                 .build();
     }
@@ -352,7 +357,9 @@ public class LocalStack extends Stack {
                         .image(ContainerImage.fromRegistry("api-gateway"))
                         .environment(Map.of(
                                 "SPRING_PROFILES_ACTIVE", "prod",
-                                "AUTH_SERVICE_URL", "http://host.docker.internal:4005"
+                                //"AUTH_SERVICE_URL", "http://host.docker.internal:4005" // in place of development we are going to reference the Auth service with cloud map name
+                                "AUTH_SERVICE_URL", "http://auth-service.patient-management.loacal:4005"
+
                         ))
                         .portMappings(
                                 List.of(4004).stream()
@@ -383,6 +390,11 @@ public class LocalStack extends Stack {
                 .taskDefinition(taskDefinition)
                 .desiredCount(1)
                 .healthCheckGracePeriod(Duration.seconds(60))
+                .publicLoadBalancer(true)
+                .cloudMapOptions(CloudMapOptions.builder()
+                        .name("api-gateway")
+                        .dnsRecordType(DnsRecordType.A)
+                        .build())
                 .build();
     }
 
