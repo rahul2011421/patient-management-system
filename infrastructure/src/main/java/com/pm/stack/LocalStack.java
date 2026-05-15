@@ -212,7 +212,10 @@ public class LocalStack extends Stack {
                 null,
                 null
         );
+
+        createGrafanaService();
     }
+
 
     /**
      * Creates a VPC with private subnets across 2 AZs.
@@ -496,6 +499,62 @@ public class LocalStack extends Stack {
                 // Allow ECS services inside VPC to access Redis
                 .vpcSecurityGroupIds(List.of(vpc.getVpcDefaultSecurityGroup()))
                 .build();
+    }
+
+
+    /**
+     * Creates Grafana dashboard service on ECS Fargate.
+
+     * Purpose:
+     * - Provides visualization layer for monitoring metrics
+     * - Connects to Prometheus as a data source
+     * - Used for dashboards, alerts, and observability
+
+     * Architecture:
+     * - Runs as a containerized Grafana instance
+     * - Exposed publicly through an Application Load Balancer
+
+     * Port:
+     * - 3000 -> Default Grafana web UI port
+
+     * Current setup:
+     * - Single Grafana container
+     * - Minimal CPU/Memory allocation for development/testing
+
+     * - For production:
+     *   - Store credentials in AWS Secrets Manager
+     */
+    private ApplicationLoadBalancedFargateService createGrafanaService() {
+
+        // ECS task definition for Grafana container
+        FargateTaskDefinition taskDefinition = FargateTaskDefinition.Builder
+                .create(this, "GrafanaService")
+                .cpu(256)
+                .memoryLimitMiB(512)
+                .build();
+
+        // Add Grafana container to task definition
+        taskDefinition.addContainer("GrafanaContainer", ContainerDefinitionOptions.builder()
+                         // Official Grafana Docker image
+                        .image(ContainerImage.fromRegistry("grafana/grafana"))
+                         // Expose Grafana UI on port 3000
+                        .portMappings(List.of(PortMapping.builder()
+                                        .containerPort(3000)
+                                .build()))
+                .build());
+
+        // Create ECS Fargate service with public load balancer
+        ApplicationLoadBalancedFargateService service = ApplicationLoadBalancedFargateService.Builder
+                .create(this, "GrafanaUIService")
+                .taskDefinition(taskDefinition)
+                // Expose Grafana publicly through ALB
+                .publicLoadBalancer(true)
+                .listenerPort(3000)
+                // Run single Grafana instance
+                .desiredCount(1)
+                .build();
+
+        return service;
     }
 
     /**
