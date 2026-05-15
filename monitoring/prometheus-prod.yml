@@ -1,0 +1,15 @@
+# Global Prometheus configuration
+global:
+  # How frequently Prometheus pulls metrics
+  # from configured targets
+  scrape_interval: 5s
+
+scrape_configs:
+  # Scrape configuration for Patient Service
+  - job_name: 'patient-service'
+    # Spring Boot Actuator Prometheus endpoint
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      # Internal ECS Cloud Map DNS entry
+      # Allows Prometheus to discover service inside VPC
+      - targets: ['patient-service.patient-management.local:4000']

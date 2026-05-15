@@ -185,6 +185,33 @@ public class LocalStack extends Stack {
         /* API Gateway also depends on Redis because it uses rate limiting
          CDK will deploy Redis first before starting the service */
         apiGateway.getNode().addDependency(elastiCacheCluster);
+
+
+        // Prometheus monitoring service for collecting application metrics
+        // Runs as a standalone ECS Fargate service inside the cluster
+
+        // Purpose:
+        // - Scrapes metrics exposed by microservices
+        // - Stores time-series monitoring data
+        // - Used later for Grafana dashboards and observability
+
+        // Current setup:
+        // - Scrapes Patient Service actuator metrics
+        // - Uses internal Cloud Map DNS for service discovery
+
+        // Port:
+        // - 9090 -> Default Prometheus UI and API port
+
+        // NOTE:
+        // - Service name "prometheus-prod" maps to a custom Docker image
+        //   containing production Prometheus configuration.
+        FargateService prometheusService = createFargateService(
+                "PrometheusService",
+                "prometheus-prod",
+                List.of(9090),
+                null,
+                null
+        );
     }
 
     /**
