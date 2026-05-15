@@ -19,6 +19,8 @@ import software.amazon.awscdk.services.ec2.InstanceType;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.ecs.*;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
+import software.amazon.awscdk.services.elasticache.CfnCacheCluster;
+import software.amazon.awscdk.services.elasticache.CfnSubnetGroup;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.logs.RetentionDays;
 import software.amazon.awscdk.services.msk.CfnCluster;
@@ -54,6 +56,10 @@ public class LocalStack extends Stack {
 
     /** ECS Cluster hosting all microservices */
     private final Cluster ecsCluster;
+
+    /** Redis / ElastiCache cluster shared across microservices.
+    This cluster is created once and injected into services via environment variables **/
+    private final CfnCacheCluster elastiCacheCluster;
 
     public LocalStack(final App scope, final String id, final StackProps props) {
         super(scope, id, props);
@@ -92,6 +98,9 @@ public class LocalStack extends Stack {
            ECS Cluster
            ========================= */
         this.ecsCluster = createEcsCluster();
+
+        // Create the Redis cluster during stack initialization
+        this.elastiCacheCluster = createRedisCluster();
 
         /* =========================
            Auth Service
@@ -156,16 +165,26 @@ public class LocalStack extends Stack {
                         )
                 );
 
+        /* Ensure Patient Service is deployed only after all this thing are available
+            Prevents startup issues caused by missing things Redis endpoint **/
         patientService.getNode().addDependency(patientServiceDb);
         patientService.getNode().addDependency(patientDbHealthCheck);
         patientService.getNode().addDependency(billingService);
         patientService.getNode().addDependency(mskCluster);
 
+        /* Ensure Patient Service is deployed only after Redis is available
+         Prevents startup issues caused by Redis endpoint **/
+        patientService.getNode().addDependency(elastiCacheCluster);
+
         /* =========================
            API Gateway
            Public entry point
            ========================= */
-        createApiGatewayService();
+        ApplicationLoadBalancedFargateService apiGateway = createApiGatewayService();
+
+        /* API Gateway also depends on Redis because it uses rate limiting
+         CDK will deploy Redis first before starting the service */
+        apiGateway.getNode().addDependency(elastiCacheCluster);
     }
 
     /**
@@ -303,6 +322,12 @@ public class LocalStack extends Stack {
                 "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
         );
 
+        /* Spring Boot Redis configuration.
+           Inject Redis endpoint dynamically from ElastiCache **/
+        envVars.put("SPRING_CACHE_TYPE", "redis");
+        envVars.put("SPRING_DATA_REDIS_HOST", elastiCacheCluster.getAttrRedisEndpointAddress());
+        envVars.put("SPRING_DATA_REDIS_PORT", elastiCacheCluster.getAttrRedisEndpointPort());
+
         if (additionalEnvVars != null) {
             envVars.putAll(additionalEnvVars);
         }
@@ -344,7 +369,7 @@ public class LocalStack extends Stack {
     /**
      * Creates the API Gateway service exposed via an Application Load Balancer.
      */
-    private void createApiGatewayService() {
+    private ApplicationLoadBalancedFargateService createApiGatewayService() {
 
         FargateTaskDefinition taskDefinition =
                 FargateTaskDefinition.Builder.create(this, "APIGatewayTaskDefinition")
@@ -358,8 +383,12 @@ public class LocalStack extends Stack {
                         .environment(Map.of(
                                 "SPRING_PROFILES_ACTIVE", "prod",
                                 //"AUTH_SERVICE_URL", "http://host.docker.internal:4005" // in place of development we are going to reference the Auth service with cloud map name
-                                "AUTH_SERVICE_URL", "http://auth-service.patient-management.loacal:4005"
+                                "AUTH_SERVICE_URL", "http://auth-service.patient-management.loacal:4005",
 
+                                /* Container environment variables for API services
+                                   Redis endpoint is resolved automatically after cluster creation */
+                                "REDIS_HOST", elastiCacheCluster.getAttrRedisEndpointAddress(),
+                                "REDIS_PORT", elastiCacheCluster.getAttrRedisEndpointPort()
                         ))
                         .portMappings(
                                 List.of(4004).stream()
@@ -383,8 +412,8 @@ public class LocalStack extends Stack {
                         .build();
 
         taskDefinition.addContainer("APIGatewayContainer", containerOptions);
-
-        ApplicationLoadBalancedFargateService.Builder.create(this, "APIGatewayService")
+        ApplicationLoadBalancedFargateService apiGateway =
+                ApplicationLoadBalancedFargateService.Builder.create(this, "APIGatewayService")
                 .cluster(ecsCluster)
                 .serviceName("api-gateway")
                 .taskDefinition(taskDefinition)
@@ -395,6 +424,50 @@ public class LocalStack extends Stack {
                         .name("api-gateway")
                         .dnsRecordType(DnsRecordType.A)
                         .build())
+                .build();
+
+        return apiGateway;
+    }
+
+    /**
+     * Creates a Redis ElastiCache cluster inside private subnets.
+
+     * Why private subnets?
+     * - Redis should not be publicly accessible.
+     * - Only ECS services inside the VPC can communicate with it.
+
+     * Security:
+     * - Uses VPC default security group for internal communication.
+
+     * Current setup:
+     * - Single-node Redis cluster
+     * - Suitable for development/testing workloads
+
+     * NOTE:
+     * - cache.t2.micro is not recommended for production.
+     * - For production, use replication groups + multi-AZ + automatic failover.
+     */
+    private CfnCacheCluster createRedisCluster() {
+
+        /* Subnet group required by ElastiCache.
+         Defines which subnets Redis instances can run in */
+        CfnSubnetGroup redisSubnetGroup = CfnSubnetGroup.Builder
+                .create(this,"RedisSubnetGroup")
+                .description("Redis/elasticache subnet group")
+                .subnetIds(vpc.getPrivateSubnets().stream()
+                        .map(ISubnet::getSubnetId)
+                        .collect(Collectors.toList()))
+                .build();
+
+        // Create Redis cluster
+        return CfnCacheCluster.Builder.create(this,"RedisCluster")
+                .cacheNodeType("cache.t2.micro")
+                .engine("redis")
+                .numCacheNodes(1)
+                // Attach cluster to private subnet group
+                .cacheSubnetGroupName(redisSubnetGroup.getCacheSubnetGroupName())
+                // Allow ECS services inside VPC to access Redis
+                .vpcSecurityGroupIds(List.of(vpc.getVpcDefaultSecurityGroup()))
                 .build();
     }
 
