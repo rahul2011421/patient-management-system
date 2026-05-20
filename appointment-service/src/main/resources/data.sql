@@ -26,6 +26,16 @@ SELECT
     WHERE NOT EXISTS (
     SELECT 1 FROM cached_patient WHERE id = '123e4567-e89b-12d3-a456-426614174000'
 );
+-- Insert patient into cache if not already present
+INSERT INTO cached_patient (id, full_name, email, updated_at)
+SELECT
+    'de0b9cb8-672a-4f4c-a35b-ff0bca47a3ec',
+    'John Doe',
+    'john.doe@example.com',
+    '2025-05-19 09:00:00'
+    WHERE NOT EXISTS (
+    SELECT 1 FROM cached_patient WHERE id = 'de0b9cb8-672a-4f4c-a35b-ff0bca47a3ec'
+);
 
 -- Insert appointment 1 if not already present
 INSERT INTO appointment (id, patient_id, start_time, end_time, reason, version)
@@ -51,6 +61,19 @@ SELECT
     0 -- Version starts at 0
     WHERE NOT EXISTS (
     SELECT 1 FROM appointment WHERE id = '22222222-2222-2222-2222-222222222222'
+);
+
+-- Insert appointment 3 if not already present
+INSERT INTO appointment (id, patient_id, start_time, end_time, reason, version)
+SELECT
+    '33333333-3333-3333-3333-333333333333',
+    'de0b9cb8-672a-4f4c-a35b-ff0bca47a3ec',
+    '2025-06-20 10:00:00',  -- Well-known date & time
+    '2025-06-20 10:30:00',  -- 30-minute slot
+    'Initial Consultation',
+    0 -- Version starts at 0
+    WHERE NOT EXISTS (
+    SELECT 1 FROM appointment WHERE id = '33333333-3333-3333-3333-333333333333'
 );
 
 -- Drop the constraint if it exists (works only if it exists)
