@@ -92,7 +92,7 @@ Application Load Balancer / API Gateway (port 4004)
 | Containerization | Docker + Docker Compose |
 | Build Tool | Apache Maven |
 | API Docs | SpringDoc OpenAPI (Swagger UI) |
-| Observability | Spring Actuator + Micrometer + Prometheus |
+| Observability | Spring Actuator + Prometheus + Grafana |
 | Testing | JUnit 5, REST Assured (integration tests) |
 | IDE | IntelliJ IDEA (recommended) |
 
