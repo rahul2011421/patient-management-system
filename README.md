@@ -229,8 +229,6 @@ Once running:
 - **Prometheus** → `http://localhost:9090`
 - **Grafana** → `http://localhost:3000` (default login: `admin` / `admin`)
 
-To connect Grafana to Prometheus: **Connections → Data Sources → Prometheus → URL: `http://Prometheus:9090`**
-
 ---
 
 ### Troubleshooting: Stale Container Conflicts
