@@ -6,7 +6,7 @@ A production-ready, cloud-native **microservices backend** for managing patients
 
 ## Project Overview
 
-The **Patient Management System** is a backend platform built on microservices architecture that handles:
+The **Patient Management System** is a backend platform built on microservice architecture that handles:
 
 - **Patient lifecycle management** — Create, read, update, and delete patient records with search and pagination.
 - **Appointment scheduling** — Query appointments by date range with enriched patient data sourced via event-driven caching (CQRS pattern).
@@ -274,3 +274,9 @@ The Appointment Service implements the **CQRS (Command Query Responsibility Segr
 ### CI/CD & Deployment
 ### Kibana (logs) integration
 ### Better Error Handling
+
+---
+
+## Made by
+
+**Rahul Yadav**
