@@ -56,7 +56,7 @@ Application Load Balancer / API Gateway (port 4004)
 | **Patient Service** | 4000 | Full CRUD for patients, Redis caching, Swagger docs, Kafka producer, gRPC client |
 | **Billing Service** | 4001 / 9001 | gRPC server that provisions billing accounts; async fallback via Kafka |
 | **Appointment Service** | 4006 | Appointment queries by date range; maintains a local CQRS read-model of patient data |
-| **Analytics Service** | — | Kafka consumer that processes patient events for analytics workloads |
+| **Analytics Service** | 4002 | Kafka consumer that processes patient events for analytics workloads |
 
 ### Data / Request Flow
 
