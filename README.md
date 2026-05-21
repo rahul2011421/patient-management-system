@@ -1,6 +1,6 @@
 # Patient Management System
 
-Patient Management System is a microservices-based backend for managing patients, appointments, billing, and authentication. Built with Java 21 and Spring Boot, the system uses Apache Kafka for event-driven communication, gRPC for synchronous inter-service calls, and PostgreSQL as the primary data store, with all services orchestrated using Docker Compose.
+Patient Management System is a **microservices-based backend** for managing patients, appointments, billing, and authentication. Built with Java 21 and Spring Boot, the system uses Apache Kafka for event-driven communication, gRPC for synchronous inter-service calls, and PostgreSQL as the primary data store, with all services orchestrated using Docker Compose.
 
 ---
 
