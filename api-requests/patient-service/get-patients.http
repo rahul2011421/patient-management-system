@@ -9,6 +9,6 @@
 
 ## GET http://lb- .elb.localhost.localstack.cloud:4004/api/patients
 
-GET http://localhost:4004/api/patients/de0b9cb8-672a-4f4c-a35b-ff0bca47a3ec
+GET http://localhost:4004/api/patients/555f6206-6c36-4f7b-bf58-5523d4bc219d
 Authorization: Bearer {{token}}
 ###
