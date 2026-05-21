@@ -271,9 +271,7 @@ The Appointment Service implements the **CQRS (Command Query Responsibility Segr
 
 ## Future Scope
 
-### CI/CD & Deployment
-### Kibana (logs) integration
-### Better Error Handling
+### CI/CD & Deployment, Kibana (logs) integration & Better Error Handling
 
 ---
 
