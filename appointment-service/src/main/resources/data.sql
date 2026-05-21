@@ -1,6 +1,6 @@
 -- Create cached_patient table if it doesn't exist
 CREATE TABLE IF NOT EXISTS cached_patient (
-                                              id UUID PRIMARY KEY,
+                                              id VARCHAR(36) PRIMARY KEY,
                                               full_name TEXT,
                                               email TEXT,
                                               updated_at TIMESTAMP
@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS cached_patient (
 
 -- Create appointment table if it doesn't exist
 CREATE TABLE IF NOT EXISTS appointment (
-                                           id UUID PRIMARY KEY,
-                                           patient_id UUID,
+                                           id VARCHAR(36) PRIMARY KEY,
+                                           patient_id VARCHAR(36),
                                            start_time TIMESTAMP,
                                            end_time TIMESTAMP,
                                            reason TEXT,
@@ -76,8 +76,5 @@ SELECT
     SELECT 1 FROM appointment WHERE id = '33333333-3333-3333-3333-333333333333'
 );
 
--- Drop the constraint if it exists (works only if it exists)
-ALTER TABLE appointment DROP CONSTRAINT IF EXISTS appointment_unique_patient_start;
-
--- Re-add the constraint
+-- Unique constraint on patient_id + start_time
 ALTER TABLE appointment ADD CONSTRAINT appointment_unique_patient_start UNIQUE (patient_id, start_time);

@@ -2,63 +2,66 @@ name: patient-management
 
 services:
   # --------------------------
-  # Databases (Postgres)
+  # Databases (MySQL)
   # --------------------------
   patient-service-db:
-    image: postgres:16
+    image: mysql:8
     container_name: patient-service-db
     environment:
-      POSTGRES_USER: ${PATIENT_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${PATIENT_DB_PASSWORD:-password}
-      POSTGRES_DB: ${PATIENT_DB_NAME:-db}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: ${PATIENT_DB_USER:-mysql}
+      MYSQL_PASSWORD: ${PATIENT_DB_PASSWORD:-password}
+      MYSQL_DATABASE: ${PATIENT_DB_NAME:-db}
     ports:
-      - "${PATIENT_DB_HOST_PORT:-5000}:5432"
+      - "${PATIENT_DB_HOST_PORT:-5000}:3306"
     volumes:
-      - patient_service_db_data:/var/lib/postgresql/data
+      - patient_service_db_data:/var/lib/mysql
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PATIENT_DB_USER:-postgres} -d ${PATIENT_DB_NAME:-db}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${PATIENT_DB_USER:-mysql}", "-p${PATIENT_DB_PASSWORD:-password}"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
   auth-service-db:
-    image: postgres:16
+    image: mysql:8
     container_name: auth-service-db
     environment:
-      POSTGRES_USER: ${AUTH_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-password}
-      POSTGRES_DB: ${AUTH_DB_NAME:-db}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: ${AUTH_DB_USER:-mysql}
+      MYSQL_PASSWORD: ${AUTH_DB_PASSWORD:-password}
+      MYSQL_DATABASE: ${AUTH_DB_NAME:-db}
     ports:
-      - "${AUTH_DB_HOST_PORT:-5001}:5432"
+      - "${AUTH_DB_HOST_PORT:-5001}:3306"
     volumes:
-      - auth_service_db_data:/var/lib/postgresql/data
+      - auth_service_db_data:/var/lib/mysql
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER:-postgres} -d ${AUTH_DB_NAME:-db}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${AUTH_DB_USER:-mysql}", "-p${AUTH_DB_PASSWORD:-password}"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
   appointment-service-db:
-    image: postgres:16
+    image: mysql:8
     container_name: appointment-service-db
     environment:
-      POSTGRES_USER: ${APPT_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${APPT_DB_PASSWORD:-password}
-      POSTGRES_DB: ${APPT_DB_NAME:-db}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: ${APPT_DB_USER:-mysql}
+      MYSQL_PASSWORD: ${APPT_DB_PASSWORD:-password}
+      MYSQL_DATABASE: ${APPT_DB_NAME:-db}
     ports:
-      - "${APPT_DB_HOST_PORT:-5003}:5432"
+      - "${APPT_DB_HOST_PORT:-5003}:3306"
     volumes:
-      - appointment_service_db_data:/var/lib/postgresql/data
+      - appointment_service_db_data:/var/lib/mysql
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${APPT_DB_USER:-postgres} -d ${APPT_DB_NAME:-db}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${APPT_DB_USER:-mysql}", "-p${APPT_DB_PASSWORD:-password}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -151,8 +154,8 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
 
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-service-db:5432/${AUTH_DB_NAME:-db}
-      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER:-postgres}
+      SPRING_DATASOURCE_URL: jdbc:mysql://auth-service-db:3306/${AUTH_DB_NAME:-db}?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER:-mysql}
       SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD:-password}
 
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -181,8 +184,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
 
-      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-service-db:5432/${PATIENT_DB_NAME:-db}
-      SPRING_DATASOURCE_USERNAME: ${PATIENT_DB_USER:-postgres}
+      SPRING_DATASOURCE_URL: jdbc:mysql://patient-service-db:3306/${PATIENT_DB_NAME:-db}?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${PATIENT_DB_USER:-mysql}
       SPRING_DATASOURCE_PASSWORD: ${PATIENT_DB_PASSWORD:-password}
 
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
