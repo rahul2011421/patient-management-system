@@ -1,6 +1,6 @@
 # Patient Management System
 
-Patient Management System is a **microservices-based backend** for managing patients, appointments, billing, and authentication. Built with Java 21 and Spring Boot, the system uses Apache Kafka for event-driven communication, gRPC for synchronous inter-service calls, and PostgreSQL as the primary data store, with all services orchestrated using Docker Compose.
+Patient Management System is a **microservices-based backend** for managing patients, appointments, billing, and authentication. Built with Java 21 and Spring Boot, the system uses Apache Kafka for event-driven communication, gRPC for synchronous inter-service calls, and MySQL as the primary data store, with all services orchestrated using Docker Compose.
 
 ---
 
@@ -32,13 +32,13 @@ Application Load Balancer / API Gateway (port 4004)
       │        └── JWT Validation Filter ──► Auth Service (port 4005)
       │
       ├──► Patient Service (port 4000)
-      │         ├── PostgreSQL (Patient DB)
+      │         ├── MySQL (Patient DB)
       │         ├── Redis (response cache)
       │         ├── gRPC Client ──────────► Billing Service (port 4001 / gRPC 9001)
       │         └── Kafka Producer ────────► Topic: patient.created / patient.updated
       │
       ├──► Appointment Service (port 4006)
-      │         ├── PostgreSQL (Appointment DB)
+      │         ├── MySQL (Appointment DB)
       │         │     ├── appointments_table
       │         │     └── cached_patients_table
       │         └── Kafka Consumer ◄────── Topic: patient.created / patient.updated
@@ -62,7 +62,7 @@ Application Load Balancer / API Gateway (port 4004)
 
 **Patient Creation Flow:**
 1. Client sends `POST /api/patients` → API Gateway validates JWT → Patient Service
-2. Patient Service persists the record to its own PostgreSQL database
+2. Patient Service persists the record to its own MySQL database
 3. Patient Service calls Billing Service via **gRPC** to create a billing account
    - If gRPC fails → **Circuit Breaker** triggers fallback → emits a `billing-account` Kafka event
 4. Patient Service publishes a `patient.created` **Protobuf** event to Kafka
@@ -86,7 +86,7 @@ Application Load Balancer / API Gateway (port 4004)
 | API Gateway | Spring Cloud Gateway |
 | Message Broker | Apache Kafka (official `apache/kafka:latest`, KRaft mode — no Zookeeper) |
 | Serialization | Protocol Buffers (Protobuf) |
-| Database | PostgreSQL 16 (per-service) |
+| Database | MySQL 8 (per-service) |
 | Caching | Redis 7 |
 | Resilience | Resilience4j (Circuit Breaker + Retry) |
 | Containerization | Docker + Docker Compose |
@@ -200,7 +200,7 @@ docker compose up --build
 ```
 
 Docker Compose starts services in dependency order:
-1. PostgreSQL databases (patient, auth, appointment) — with health checks
+1. MySQL databases (patient, auth, appointment) — with health checks
 2. Redis
 3. Kafka (official `apache/kafka:latest`, KRaft mode — no Zookeeper required)
 4. All six microservices (wait for healthy dependencies before starting)
@@ -264,7 +264,7 @@ The Appointment Service implements the **CQRS (Command Query Responsibility Segr
 **CQRS Read-Model (Kafka Consumer)**
 - Listens to `patient.created` and `patient.updated` Kafka topics using the `appointment-service` consumer group
 - Deserializes Protobuf-encoded `PatientEvent` messages
-- Upserts patient data (`id`, `fullName`, `email`) into a local `cached_patients` table in its own PostgreSQL database
+- Upserts patient data (`id`, `fullName`, `email`) into a local `cached_patients` table in its own MySQL database
 - This eliminates any runtime dependency on the Patient Service during appointment queries
 
 ---
