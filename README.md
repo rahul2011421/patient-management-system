@@ -81,12 +81,12 @@ Application Load Balancer / API Gateway (port 4004)
 | Category | Technology |
 |---|---|
 | Language | Java 21 |
-| Framework | Spring Boot 4.x |
+| Framework | Spring Boot 4 |
 | API Style | REST (Spring MVC) + gRPC |
 | API Gateway | Spring Cloud Gateway |
 | Message Broker | Apache Kafka (official `apache/kafka:latest`, KRaft mode — no Zookeeper) |
 | Serialization | Protocol Buffers (Protobuf) |
-| Database | MySQL 8 (per-service) |
+| Database | MySQL 8 |
 | Caching | Redis 7 |
 | Resilience | Resilience4j (Circuit Breaker + Retry) |
 | Containerization | Docker + Docker Compose |
@@ -94,7 +94,7 @@ Application Load Balancer / API Gateway (port 4004)
 | API Docs | SpringDoc OpenAPI (Swagger UI) |
 | Observability | Spring Actuator + Prometheus + Grafana |
 | Testing | JUnit 5, REST Assured (integration tests) |
-| IDE | IntelliJ IDEA (recommended) |
+| IDE | IntelliJ IDEA |
 
 ---
 
