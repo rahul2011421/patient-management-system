@@ -19,6 +19,10 @@ The **Patient Management System** is a backend platform built on microservice ar
 
 ## Architecture Overview
 
+### Patient Management Architecture Diagram
+<img width="1536" height="1024" alt="Patient Management Architecture Diagram" src="https://github.com/user-attachments/assets/46e8a342-a8b9-4f74-8c99-77b00eb1bf94" />
+
+
 ### High-Level Description
 
 The system follows a **microservices** design where each service owns its own database (Database-per-Service pattern). Services communicate asynchronously via **Apache Kafka** (using Protobuf-serialized events) and synchronously via **gRPC**. All external traffic is routed through a **Spring Cloud API Gateway**.
