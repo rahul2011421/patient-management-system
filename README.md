@@ -19,8 +19,8 @@ The **Patient Management System** is a backend platform built on microservice ar
 
 ## Architecture Overview
 
-### Patient Management Architecture Diagram
-<img width="1536" height="1024" alt="Patient Management Architecture Diagram" src="https://github.com/user-attachments/assets/46e8a342-a8b9-4f74-8c99-77b00eb1bf94" />
+### ![Patient Management Architecture Diagram](https://github.com/rahul2011421/patient-management-system/blob/main/images/Patient%20Management%20Architecture%20Diagram.png)
+
 
 
 ### High-Level Description
